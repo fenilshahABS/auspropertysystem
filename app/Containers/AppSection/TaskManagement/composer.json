@@ -1,0 +1,6 @@
+{
+    "name": "apiato/taskmanagement",
+    "description": "TaskManagement Container for apiato.",
+    "require": {
+    }
+}

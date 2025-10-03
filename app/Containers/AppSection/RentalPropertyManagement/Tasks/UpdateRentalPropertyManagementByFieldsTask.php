@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Containers\AppSection\RentalPropertyManagement\Tasks;
+
+use App\Containers\AppSection\Propertymaster\Models\PropertymasterDetails;
+use App\Containers\AppSection\RentalPropertyManagement\Data\Repositories\RentalPropertyManagementRepository;
+use App\Containers\AppSection\RentalPropertyManagement\Models\RentalPropertyManagement;
+use App\Containers\AppSection\RentalPropertyManagement\Models\RentalPropertyManagementLateFees;
+use App\Ship\Exceptions\NotFoundException;
+use App\Ship\Exceptions\UpdateResourceFailedException;
+use App\Ship\Parents\Tasks\Task as ParentTask;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
+class UpdateRentalPropertyManagementByFieldsTask extends ParentTask
+{
+    public function __construct(
+        protected RentalPropertyManagementRepository $repository
+    ) {
+    }
+
+    /**
+     * @throws NotFoundException
+     * @throws UpdateResourceFailedException
+     */
+    public function run($InputData, $id)
+    {
+        try {
+            $returnData = array();
+            $field_db = $InputData->getFieldDB();
+            $search_val = $InputData->getSearchVal();
+            if ($field_db == "lease_end_date") {
+                $current_date = date('Y-m-d');
+                $update = RentalPropertyManagement::where('id', $id)->first();
+                $update->lease_end_date = $search_val;
+                if($current_date >= $search_val){
+                  $update->lease_status = 0;
+                }else{
+                  $update->lease_status = 1;
+                }
+                $update->save();
+
+                if($current_date >= $search_val){
+                  $getUnitData = PropertymasterDetails::where('id', $update->pro_property_master_details_id)->update(['property_status' => 1]);
+                }else{
+                  $getUnitData = PropertymasterDetails::where('id', $update->pro_property_master_details_id)->update(['property_status' => 2]);
+                }
+
+            } else {
+                $update = RentalPropertyManagement::where('id', $id)->update([$field_db => $search_val]);
+            }
+
+            if ($update) {
+                $returnData['message'] = "Updation Successfull";
+            } else {
+                $returnData['message'] = "Failed To Update";
+            }
+            return $returnData;
+        } catch (ModelNotFoundException) {
+            throw new NotFoundException();
+        } catch (Exception) {
+            throw new UpdateResourceFailedException();
+        }
+    }
+}

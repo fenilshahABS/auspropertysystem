@@ -1,0 +1,6 @@
+{
+    "name": "apiato/notifications",
+    "description": "Notifications Container for apiato.",
+    "require": {
+    }
+}

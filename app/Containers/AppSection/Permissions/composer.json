@@ -1,0 +1,6 @@
+{
+    "name": "apiato/permissions",
+    "description": "Permissions Container for apiato.",
+    "require": {
+    }
+}
